@@ -1,0 +1,16 @@
+App(
+    appid="gflai_neon",
+    name="GFLAI Neon Drive",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="gflai_neon_app",
+    # test/ is host-only; without this ufbt globs it into the firmware build
+    sources=["gflai_*.c"],
+    stack_size=4 * 1024,
+    fap_category="Sub-GHz",
+    fap_version="1.0",
+    fap_icon="gflai_neon.png",
+    fap_description="Drive GFLAI RGB wristbands over 433.92MHz with a cyberpunk palette",
+    fap_author="Jordan Wiens & Josh",
+    fap_weburl="https://github.com/psifertex/gflaibrary",
+    fap_private_libs=[],
+)

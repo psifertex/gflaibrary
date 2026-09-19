@@ -85,16 +85,60 @@ aa ff   # fixed byte sequence as far as we can tell, could also be group code re
 XX      # Either contains an 80 or 50 depending on whether the packet was a 
 ```
 
+## Refinements from re-reading the captures
+
+Writing the [Flipper app](./flipper) meant going back to the raw pulses, and two
+details turned out slightly different from what the generator emits. Both are
+cosmetic in the sense that the original approach worked, but the app reproduces
+what the captures actually contain:
+
+- That leading `50` is a **nibble** on the wire, not a byte. The preamble burst
+  is three bits `010`, then a lone 200us mark and a 1600us gap. `decode.py`
+  zero-pads the trailing partial byte, which is what turns it into `0x50`.
+- Every burst ends the same way: one short 200us mark followed by a long
+  silence, 1600us between bursts inside a block and 5600us between blocks. A
+  block is the preamble burst plus **two** identical payload repeats, and takes
+  about 102ms, which is why the captured crossfade steps once per ~101ms.
+
+`flipper/test/test_encoder.py` pins all of this down by diffing the app's
+generated pulses against the captures.
+
 # Transmit Script
 
 We made a lot of other random utilities along the way most of which eventually got removed or replaced, but the `transmit.py` script we found useful for quickly iterating/triggering the flipper zero to upload .sub files and trigger them without having to manually interact with it each time. We also used the same script to upload the javascript sample app later. Note that you'll need to adjust the default path on a platform where the flipper zero shows up as a different usb serial device and put the name of your flipper into the 
 
+# Flipper App
+
+[`flipper/`](./flipper) holds **GFLAI Neon Drive**, a native Flipper Zero app
+that controls the wristbands directly. It builds the OOK pulse train in memory
+and feeds it to the radio, so there are no `.sub` files to generate or upload
+and patterns animate live.
+
+It ships a palette and a set of scenes taken from
+[cyberputer](https://github.com/psifertex/cyberputer) — Neon City, Neon Odyssey,
+Night Drift, Signal Rain, Neon Radar and friends — for costumes that need the
+wristband to match everything else. The palette is saturated on the way across:
+cyberputer's colours are tuned for an emissive screen on black, and need the
+white floor pulled out of them before they look right on an LED.
+
+```sh
+cd flipper
+ufbt launch
+```
+
+See [flipper/README.md](./flipper/README.md) for controls, the scene list, and
+build instructions for firmware other than Momentum.
+
 # Todo
 
-We decided not to try to finish the javascript application (you can load it onto your flipper by putting it in the `/ext/apps/Scripts` folder and running it via the UI) so we could enjoy the rest of the con, but maybe we'll finish it later or someone else wants to take a stab for the final prize!
+The javascript application in `crowdled.js` was never finished — the native app
+took its place. You can still load it onto your flipper by putting it in the
+`/ext/apps/Scripts` folder and running it via the UI, but it does not work yet.
 
- - Finish JS app
  - Add more patterns
+ - Work out what the trailing `00` byte does; a group code would let one Flipper
+   drive several bands independently
+ - Find out whether the checksum nibble `5` means anything
 
 # Credits
 

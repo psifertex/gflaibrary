@@ -1,3 +1,5 @@
 .flipper
 .vscode
+.DS_Store
 captures/output.sub
+flipper/dist/
